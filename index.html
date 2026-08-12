@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>체카(CHEXCAR) 밸류체인 스터디 — 인증중고차 Fulfillment OS 포지셔닝</title>
+<style>
+  :root{
+    --plane:#f4f3ef; --surface:#fcfcfb; --surface-2:#f7f6f2;
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e6e5df; --line:#c8c7bf; --ring:rgba(11,11,11,.10);
+    --accent:#2a78d6; --accent-soft:#e8f0fc;
+    --focal:#0f5132; --focal-soft:#e4f2ea;
+    --own:#1baf7a; --partner:#5598e7; --light:#eda100; --absent:#c8c7bf;
+    --good:#0ca30c; --warn:#c98500; --serious:#ec835a; --crit:#d03b3b;
+    --crit-soft:#fbe9e7;
+    --shadow:0 1px 2px rgba(11,11,11,.05),0 8px 30px rgba(11,11,11,.06);
+    --font:system-ui,-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --plane:#0d0d0d; --surface:#1a1a19; --surface-2:#222220;
+    --ink:#fff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --line:#383835; --ring:rgba(255,255,255,.12);
+    --accent:#3987e5; --accent-soft:#132a44;
+    --focal:#4bd499; --focal-soft:#0f2a1e;
+    --own:#199e70; --partner:#3987e5; --light:#c98500; --absent:#4a4a46;
+    --good:#0ca30c; --warn:#eda100; --serious:#ec835a; --crit:#e66767;
+    --crit-soft:#2a1614;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--plane);color:var(--ink);font-family:var(--font);
+    font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{letter-spacing:-.02em;line-height:1.2;margin:0}
+  .mono{font-variant-numeric:tabular-nums}
+
+  /* Top bar */
+  header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--plane) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--grid)}
+  .topbar{display:flex;align-items:center;gap:16px;padding:12px 24px;max-width:1200px;margin:0 auto}
+  .brand{display:flex;flex-direction:column;min-width:0}
+  .brand b{font-size:15px;font-weight:700}
+  .brand span{font-size:12px;color:var(--muted)}
+  .grow{flex:1}
+  .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);
+    border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  nav.tabs{display:flex;gap:2px;overflow-x:auto;padding:0 24px 10px;max-width:1200px;margin:0 auto;scrollbar-width:none}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs a{white-space:nowrap;font-size:13px;color:var(--ink-2);padding:6px 12px;border-radius:7px}
+  nav.tabs a:hover{background:var(--surface-2);text-decoration:none}
+
+  /* Hero */
+  .hero{padding:44px 0 8px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .hero h1{font-size:34px;margin:12px 0 10px}
+  .hero .thesis{font-size:18px;color:var(--ink-2);max-width:820px}
+  .hero .thesis b{color:var(--ink);font-weight:600}
+  .metaline{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-size:12.5px;color:var(--muted)}
+  .metaline b{color:var(--ink-2);font-weight:600}
+
+  section{padding:40px 0;border-top:1px solid var(--grid);scroll-margin-top:110px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .sec-head h2{font-size:22px}
+  .sec-head .n{font-size:13px;color:var(--muted);font-weight:600}
+  .sec-sub{color:var(--ink-2);max-width:860px;margin:6px 0 24px}
+
+  /* KPI tiles */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:16px}
+  .tile .v{font-size:26px;font-weight:700;line-height:1.1}
+  .tile .l{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+  .tile .c{font-size:11px;color:var(--muted);margin-top:4px}
+
+  /* Value-chain flow */
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  @media(max-width:820px){.flow{grid-template-columns:1fr 1fr}}
+  .node{position:relative;background:var(--surface);border:1px solid var(--ring);border-radius:12px;
+    padding:16px 14px;cursor:pointer;transition:.15s;min-height:150px;display:flex;flex-direction:column}
+  .node:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .node.core{border-color:var(--focal);background:var(--focal-soft)}
+  .node .step{font-size:11px;color:var(--muted);font-weight:700}
+  .node h3{font-size:15px;margin:6px 0 8px}
+  .node p{font-size:12px;color:var(--ink-2);margin:0}
+  .node .cx{margin-top:auto;padding-top:10px;font-size:11.5px;font-weight:600}
+  .cx-own{color:var(--own)} .cx-part{color:var(--partner)} .cx-none{color:var(--muted)}
+  .arrow{color:var(--muted);text-align:center;align-self:center;font-size:18px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0 0;font-size:12px;color:var(--ink-2)}
+  .swatch{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--ring)}
+  /* Segment scope */
+  .subhead{font-size:16px;font-weight:700;margin:30px 0 4px;letter-spacing:-.02em}
+  table.seg{border-collapse:collapse;width:100%;min-width:660px}
+  table.seg th,table.seg td{border:1px solid var(--grid);padding:10px 12px;font-size:12.5px;vertical-align:top;text-align:left;line-height:1.5}
+  table.seg thead th{background:var(--surface-2);font-weight:700;font-size:12px;white-space:nowrap}
+  table.seg tbody th{font-weight:700;background:var(--surface);width:24%}
+  table.seg tbody th small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+  table.seg td.c{text-align:center;white-space:nowrap;width:13%}
+  .seg .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+  .b-core{background:var(--own);color:#fff}
+  .b-exp{background:var(--partner);color:#fff}
+  .b-road{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .b-must{background:var(--focal-soft);color:var(--focal)}
+  .b-apply{background:var(--accent-soft);color:var(--accent)}
+  .b-opt{color:var(--warn);border:1px solid var(--warn);border-radius:20px;padding:2px 9px;display:inline-block}
+
+  /* Matrix */
+  .matrix-scroll{overflow-x:auto;border:1px solid var(--ring);border-radius:12px;background:var(--surface)}
+  table.mx{border-collapse:collapse;width:100%;min-width:820px}
+  table.mx th,table.mx td{border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);
+    padding:0;text-align:center;vertical-align:middle}
+  table.mx thead th{position:sticky;top:0;background:var(--surface-2);font-size:12px;font-weight:700;
+    padding:10px 8px;cursor:pointer;z-index:2}
+  table.mx thead th:hover{color:var(--accent)}
+  table.mx thead th.grp{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:default}
+  table.mx thead th.focalcol{color:var(--focal)}
+  table.mx tbody th{text-align:left;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;
+    background:var(--surface);position:sticky;left:0;z-index:1;min-width:150px}
+  table.mx tbody th:hover{color:var(--accent)}
+  table.mx tbody th small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+  .cell{padding:12px 8px;cursor:pointer;font-size:11.5px;font-weight:600;transition:.12s;min-height:52px}
+  .cell:hover{outline:2px solid var(--accent);outline-offset:-2px}
+  .cell .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px}
+  .s-own{background:var(--focal-soft);color:var(--focal)}
+  .s-own .badge{background:var(--own);color:#fff}
+  .s-part{background:var(--accent-soft);color:var(--accent)}
+  .s-light{color:var(--warn)}
+  .s-absent{color:var(--muted)}
+  .cell small{display:block;font-weight:400;color:var(--muted);font-size:10.5px;margin-top:3px;line-height:1.3}
+
+  /* Company cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .card{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:16px;cursor:pointer;transition:.15s}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .card.focal{border-color:var(--focal)}
+  .card .tag{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  .card.focal .tag{color:var(--focal)}
+  .card h3{font-size:17px;margin:6px 0 2px}
+  .card .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .card p{font-size:12.5px;color:var(--ink-2);margin:0 0 10px}
+  .minicov{display:flex;gap:3px}
+  .minicov i{flex:1;height:6px;border-radius:2px;background:var(--absent)}
+  .minicov i.own{background:var(--own)} .minicov i.part{background:var(--partner)} .minicov i.light{background:var(--light)}
+  .card .cov-l{font-size:10.5px;color:var(--muted);margin-top:6px}
+
+  /* Charts */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:820px){.chart-grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:18px}
+  .panel h3{font-size:15px;margin-bottom:2px}
+  .panel .ph{font-size:12px;color:var(--muted);margin-bottom:12px}
+  svg .grid{stroke:var(--grid);stroke-width:1}
+  svg .axis{fill:var(--muted);font-size:10px}
+  svg .bar{fill:var(--accent)}
+  svg .bar-neg{fill:var(--crit)}
+  svg .lbl{fill:var(--ink-2);font-size:10px;font-weight:600}
+  .flag-note{font-size:11.5px;color:var(--warn);margin-top:10px;display:flex;gap:6px;align-items:flex-start}
+
+  /* Red flags */
+  .flags{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:820px){.flags{grid-template-columns:1fr}}
+  .flag{background:var(--surface);border:1px solid var(--ring);border-left-width:4px;border-radius:10px;padding:14px 16px}
+  .flag.crit{border-left-color:var(--crit)} .flag.warn{border-left-color:var(--warn)}
+  .flag.pos{border-left-color:var(--good)}
+  .flag .sev{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+  .flag.crit .sev{color:var(--crit)} .flag.warn .sev{color:var(--warn)} .flag.pos .sev{color:var(--good)}
+  .flag h4{font-size:14px;margin:4px 0 6px}
+  .flag p{font-size:12.5px;color:var(--ink-2);margin:0}
+  .flag .ev{font-size:11.5px;color:var(--muted);margin-top:8px}
+
+  /* Drawer */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.2s;z-index:90}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);background:var(--surface);
+    box-shadow:var(--shadow);transform:translateX(100%);transition:.25s cubic-bezier(.4,0,.2,1);z-index:100;
+    display:flex;flex-direction:column}
+  .drawer.on{transform:none}
+  .drawer .dhead{padding:20px 24px;border-bottom:1px solid var(--grid);display:flex;align-items:flex-start;gap:12px}
+  .drawer .dhead .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+  .drawer .dhead h2{font-size:20px;margin:4px 0 2px}
+  .drawer .dhead .sub{font-size:12.5px;color:var(--muted)}
+  .close{margin-left:auto;border:none;background:var(--surface-2);border-radius:8px;width:34px;height:34px;
+    font-size:18px;cursor:pointer;color:var(--ink-2);flex:none}
+  .dbody{padding:22px 24px;overflow-y:auto}
+  .dbody h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:20px 0 8px}
+  .dbody h4:first-child{margin-top:0}
+  .dbody p{font-size:13.5px;margin:0 0 10px}
+  .dbody ul{margin:0 0 10px;padding-left:18px;font-size:13px}
+  .dbody li{margin-bottom:5px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:0 0 10px}
+  .kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600;text-align:right}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;margin:0 4px 4px 0}
+  .pill.own{background:var(--focal-soft);color:var(--focal)}
+  .pill.part{background:var(--accent-soft);color:var(--accent)}
+  .pill.light{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+  .pill.absent{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .covrow{display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center;margin-bottom:6px;font-size:12px}
+  .covbar{height:22px;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#fff}
+  .cb-own{background:var(--own)} .cb-part{background:var(--partner)} .cb-light{background:var(--light)}
+  .cb-absent{background:var(--absent);color:var(--ink-2)}
+  .callout{background:var(--crit-soft);border:1px solid var(--crit);border-radius:10px;padding:12px 14px;font-size:12.5px;margin:10px 0}
+  .callout b{color:var(--crit)}
+
+  footer{padding:36px 0 60px;border-top:1px solid var(--grid);font-size:12px;color:var(--muted)}
+  footer h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);margin:0 0 8px}
+  footer a{color:var(--ink-2)}
+  .disc{background:var(--surface-2);border:1px solid var(--ring);border-radius:10px;padding:14px 16px;margin-top:18px;font-size:11.5px;line-height:1.6}
+  @media print{header,nav.tabs,.btn,.scrim,.drawer{display:none!important}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <b>체카(CHEXCAR) 밸류체인 스터디</b>
+      <span>인증중고차 Fulfillment OS · 내부 투자검토용 · 기준일 2026.08</span>
+    </div>
+    <div class="grow"></div>
+    <button class="btn" id="theme">◐ 테마</button>
+    <button class="btn" onclick="window.print()">인쇄 / PDF</button>
+  </div>
+  <nav class="tabs">
+    <a href="#hero">개요</a>
+    <a href="#chain">밸류체인 지도</a>
+    <a href="#matrix">커버리지 매트릭스</a>
+    <a href="#companies">기업 뷰</a>
+    <a href="#fin">재무 · 실적</a>
+    <a href="#val">밸류에이션</a>
+    <a href="#flags">실사 관점 · 레드플래그</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- HERO -->
+<div class="hero" id="hero">
+  <div class="eyebrow">Positioning Study</div>
+  <h1>체카는 중고차를 팔지 않는다.<br/>중고차가 팔리게 만드는 <span style="color:var(--focal)">중간</span>을 판다.</h1>
+  <p class="thesis">체카(CHEXCAR)는 마켓플레이스(엔카)도, 직영 리테일러(K카·Carvana)도 아니다.
+  한국 <b>중고차 밸류체인</b>에서 <b>검수·상품화(재제조)와 B2B 공매</b>라는, 남들이 필요로 하지만 표준화된 공급이 부재한 <b>"중간(middle)"을 인프라로 장악</b>하려는
+  <b>Fulfillment OS</b> 플레이다. 상품화가 필수인 <b>인증중고차(CPO)를 교두보</b>로 삼되, 고객은 <b>완성차·렌터카·캐피탈·딜러</b>로, 로드맵상 <b>C2C 소비자 상품화</b>까지 확장된다.
+  글로벌 풀스택(Carvana·Carro)이 <b>내부에 짓는</b> 상품화 레이어를, 체카는 <b>서비스로 판다</b> — CPO 골드러시의 "곡괭이" 전략.</p>
+  <div class="metaline">
+    <span><b>대상</b> (주)체카 · 설립 2017 · CEO 안효진 · 임직원 47명 · 수원</span>
+    <span><b>사업</b> CHEXCAR(상품화 SaaS) · LEMON(공매/자판기) · MOVESHARE(렌트) · NEXTGEAR(금융)</span>
+    <span><b>단계</b> Series C(2026, 산업은행·HB) · 2028 코스닥 IPO 목표</span>
+  </div>
+  <div class="callout" style="margin-top:20px">
+    ⚠︎ <b>읽는 법</b> — 이 자료는 <b>IR 서사</b>와 <b>감사 실적(K-IFRS)</b>을 의도적으로 나란히 놓는다.
+    아래 KPI·시장 수치는 대부분 <b>회사 IR/내부자료</b>이며, 재무·레드플래그 섹션의 감사 수치와 반드시 교차 확인할 것. 특히 <b>GMV(총액) ≠ 순매출</b>, 그리고 <b>계속기업 불확실성</b>에 유의.
+  </div>
+</div>
+
+<!-- KPI -->
+<section id="kpi" style="border-top:none;padding-top:24px">
+  <div class="tiles">
+    <div class="tile"><div class="v">53,527대</div><div class="l">누적 상품화 처리</div><div class="c">2017–2025 · IR</div></div>
+    <div class="tile"><div class="v">25.5%</div><div class="l">브랜드 인증중고차 M/S</div><div class="c">내부 추정</div></div>
+    <div class="tile"><div class="v">99.95%</div><div class="l">상품화 품질 완성도</div><div class="c">내부 운영데이터</div></div>
+    <div class="tile"><div class="v">12→4.2일</div><div class="l">리드타임 (–65%)</div><div class="c">VPF 도입 후</div></div>
+    <div class="tile"><div class="v">기아 CPO</div><div class="l">인증중고차 단독 운영사</div><div class="c">2023~ · 고객 집중 리스크</div></div>
+    <div class="tile" style="border-color:var(--crit)"><div class="v" style="color:var(--crit)">547%</div><div class="l">부채비율 (감사, 2025)</div><div class="c">순차입 388억 · 현금 2.4억</div></div>
+  </div>
+</section>
+
+<!-- VALUE CHAIN MAP -->
+<section id="chain">
+  <div class="sec-head"><span class="n">01</span><h2>한국 중고차 산업 밸류체인 지도</h2></div>
+  <p class="sec-sub">이 5단계는 <b>인증중고차에 국한되지 않는 중고차 산업 전체 구조</b>다. 각 단계를 클릭하면 정의·플레이어·체카 포지션·이코노믹스·리스크가 오른쪽 패널에 열린다.
+  체카는 <b style="color:var(--focal)">2·3단계(상품화·공매)를 직영으로 장악</b>하고 4·5단계로 확장 중이다.</p>
+  <div class="flow" id="flow"></div>
+  <div class="legend">
+    <span class="swatch"><span class="dot" style="background:var(--own)"></span>직영·소유</span>
+    <span class="swatch"><span class="dot" style="background:var(--partner)"></span>제휴·부분</span>
+    <span class="swatch"><span class="dot" style="background:var(--light)"></span>경량·신규</span>
+    <span class="swatch"><span class="dot" style="background:var(--absent)"></span>미참여</span>
+  </div>
+
+  <div class="subhead">체카 고객 · 세그먼트 스코프 — CPO는 교두보일 뿐</div>
+  <p class="sec-sub" style="margin-bottom:14px">위 밸류체인은 산업 전체 구조이고, 그 위에서 체카가 실제 커버하는 <b>고객 세그먼트는 인증중고차(CPO)에 국한되지 않는다</b>.
+  IR이 명시한 대상 고객은 완성차·렌터카·캐피탈·딜러이며, 로드맵은 C2C 소비자 상품화까지 간다. 다만 <b>상품화 필수성이 낮아질수록(필수→선택) 경쟁이 세지고 해자는 약해진다</b>는 그라데이션에 유의.</p>
+  <div class="matrix-scroll"><table class="seg">
+    <thead><tr><th>품질 세그먼트</th><th>상품화</th><th>체카 진출도</th><th>주요 고객 · 근거</th></tr></thead>
+    <tbody>
+      <tr><th>인증중고차 (OEM CPO)<small>브랜드 인증, 신차급 무사고</small></th>
+        <td class="c"><span class="badge b-must">필수</span></td>
+        <td class="c"><span class="badge b-core">● 코어</span></td>
+        <td>기아 인증중고차 <b>단독 운영사</b> + 벤츠 등 수입 브랜드 제3자 인증. 브랜드 인증 M/S 25.5%(내부). 해자 가장 강함.</td></tr>
+      <tr><th>진단·기업형 / 렌터카·캐피탈 fleet<small>리스·렌트 만기, 리마케팅</small></th>
+        <td class="c"><span class="badge b-apply">적용</span></td>
+        <td class="c"><span class="badge b-exp">◐ 확장</span></td>
+        <td>IR 명시 대상 고객: <b>렌터카사·캐피탈·딜러 네트워크</b>. fleet 리마케팅 물량 — CPO 밖의 핵심 확장축.</td></tr>
+      <tr><th>상사·딜러 중고차<small>기업형·개인 딜러</small></th>
+        <td class="c"><span class="badge b-opt">선택</span></td>
+        <td class="c"><span class="badge b-exp">◐ 확장</span></td>
+        <td>전국 <b>91개 상품화 파트너</b> 딜러 네트워크 + LEMON B2B 공매 참여 딜러/법인. 가격경쟁·영세 공업사와 경합.</td></tr>
+      <tr><th>개인거래 (C2C)<small>당사자 거래(시장의 과반)</small></th>
+        <td class="c"><span class="badge b-opt">선택</span></td>
+        <td class="c"><span class="badge b-road">○ 로드맵</span></td>
+        <td>전문 상품화업체 부재. LEMON B2C 자판기 + <b>소비자 상품화 서비스(Phase1, 2026~)</b>. 미검증.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="legend">
+    <span class="swatch"><span class="dot" style="background:var(--own)"></span>코어(현재 주력)</span>
+    <span class="swatch"><span class="dot" style="background:var(--partner)"></span>확장(진행)</span>
+    <span class="swatch"><span class="dot" style="background:transparent;border-color:var(--line)"></span>로드맵(계획)</span>
+  </div>
+  <div class="callout" style="background:var(--surface-2);border-color:var(--ring);margin-top:14px">
+    <b>해자 그라데이션</b> — 상품화가 <b>'필수'인 CPO</b>에서 체카의 표준 인프라 가치가 가장 크고, <b>'선택'인 상사·C2C</b>로 갈수록 영세 공업사와의 가격경쟁에 노출된다.
+    따라서 "고객 범위는 CPO 밖으로 넓지만, <b>수익성·방어력의 무게중심은 여전히 CPO</b>"라는 이중 구조로 읽어야 한다.
+  </div>
+</section>
+
+<!-- MATRIX -->
+<section id="matrix">
+  <div class="sec-head"><span class="n">02</span><h2>밸류체인 커버리지 매트릭스</h2></div>
+  <p class="sec-sub">이 스터디의 백본. <b>행=밸류체인 단계, 열=기업</b>. 각 셀은 그 기업이 해당 단계를 <b>직접 소유</b>하는지, <b>제휴/외주</b>하는지를 보여준다.
+  행 머리(단계)·열 머리(기업)·셀 아무거나 클릭 → 상세. 한눈에 드러나는 사실: <b>글로벌 풀스택은 열 전체를 소유</b>하는 반면, <b>체카는 남들이 내부화한 "중간"을 서비스로 소유</b>한다.</p>
+  <div class="matrix-scroll"><table class="mx" id="mx"></table></div>
+  <div class="legend">
+    <span class="swatch"><span class="dot" style="background:var(--own)"></span>직영·소유</span>
+    <span class="swatch"><span class="dot" style="background:var(--partner)"></span>제휴·부분</span>
+    <span class="swatch"><span class="dot" style="background:transparent;border-color:var(--warn)"></span>경량·신규</span>
+    <span class="swatch"><span class="dot" style="background:transparent"></span>미참여</span>
+  </div>
+</section>
+
+<!-- COMPANIES -->
+<section id="companies">
+  <div class="sec-head"><span class="n">03</span><h2>기업 뷰</h2></div>
+  <p class="sec-sub">각 카드를 클릭하면 사업모델·밸류체인 커버리지·재무·밸류에이션·실사 노트가 열린다. 하단 색막대는 5단계 커버리지 요약.</p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<!-- FINANCIALS -->
+<section id="fin">
+  <div class="sec-head"><span class="n">04</span><h2>재무 · 실적 — 감사 실적 vs IR 추정</h2></div>
+  <p class="sec-sub">가장 중요한 딜리전스 포인트. 회사 IR은 <b>GMV(총액) 기준 우상향</b>을 강조하지만, <b>감사 순매출(K-IFRS)은 2025년 오히려 –12.4% 역성장</b>했다.
+  마진은 SaaS급이 아니라 얇다(2025 EBITDA 마진 ~3.2%). 대규모 capex(화성 허브 380억)를 단기차입으로 조달해 <b>레버리지가 극단적</b>이다.</p>
+  <div class="chart-grid">
+    <div class="panel">
+      <h3>매출액 & 영업이익 (감사, K-IFRS)</h3>
+      <div class="ph">단위: 억원 · 2021–2025 · 개별재무제표</div>
+      <div id="chart-rev"></div>
+      <div class="flag-note">⚠︎ 2024→2025 매출 398→349억(–12.4%). IR의 "매년 성장" 서사와 배치.</div>
+    </div>
+    <div class="panel">
+      <h3>EBITDA & 당기순이익 (감사)</h3>
+      <div class="ph">단위: 억원 · 흑자전환은 2024년(EBITDA)·2025년(순이익), 규모는 소액</div>
+      <div id="chart-eb"></div>
+      <div class="flag-note">⚠︎ 2025 EBITDA 11.2억(마진 3.2%). IR 2028E EBITDA 241억(마진 ~16%)은 큰 스텝업 가정.</div>
+    </div>
+  </div>
+  <div class="tiles" style="margin-top:16px">
+    <div class="tile"><div class="v mono">348.8억</div><div class="l">2025 매출 (감사)</div><div class="c">YoY –12.4%</div></div>
+    <div class="tile"><div class="v mono">2.4억</div><div class="l">2025 당기순이익</div><div class="c">2024 –5.6억 → 흑자전환</div></div>
+    <div class="tile" style="border-color:var(--crit)"><div class="v mono" style="color:var(--crit)">2.4억</div><div class="l">기말 현금 (2025)</div><div class="c">유동부채 353.9억</div></div>
+    <div class="tile" style="border-color:var(--crit)"><div class="v mono" style="color:var(--crit)">34.6x</div><div class="l">순차입 / EBITDA</div><div class="c">순차입 388.4억</div></div>
+    <div class="tile"><div class="v mono">167억</div><div class="l">2025 Capex</div><div class="c">화성 허브 · 건설중 209억</div></div>
+    <div class="tile"><div class="v mono">608억</div><div class="l">2026E GMV (IR)</div><div class="c">※ 순매출 아님(총액)</div></div>
+  </div>
+  <div class="callout" style="margin-top:16px">
+    <b>GMV ≠ 순매출.</b> IR의 "2026E 608억 → 2030E Gross 6,000억 / Net 4,800억"은 <b>거래총액(GMV) 기준이며 "K-IFRS 미적용" 추정치</b>다.
+    감사 순매출(349억, 2025)과 10배 이상 차이 날 수 있으므로, 성장률·밸류에이션 배수를 GMV로 계산하면 크게 왜곡된다. 상품화는 총액(상품매출), LEMON 상당분은 순액(수수료)로 인식되는 혼합 구조에 유의.
+  </div>
+
+  <div class="subhead">사업부 이코노믹스 — 매출 ≠ 이익 (감사 IS 분해, 2025)</div>
+  <p class="sec-sub" style="margin-bottom:14px">감사 손익계산서를 사업부로 분해하면 헤드라인이 뒤집힌다. <b>LEMON(공매·자판기)은 매출의 72%지만 매출총이익(GP)의 9%</b>에 불과하고(차량 되팔기 총액인식, 마진 1.5%),
+  <b>상품화(CHEXCAR)+SaaS·수수료는 매출 26%인데 GP의 82%</b>다. 진짜 이익 엔진은 상품화·SaaS이며 LEMON 매출은 대부분 pass-through다.</p>
+  <div class="panel">
+    <h3>2025 매출 구성 vs 매출총이익 구성</h3>
+    <div class="ph">감사 IS 기준 · 세그먼트별 비중(%)</div>
+    <div id="chart-mix" style="max-width:560px"></div>
+  </div>
+  <div class="matrix-scroll" style="margin-top:14px"><table class="seg">
+    <thead><tr><th>사업부</th><th>2025 매출(억)</th><th>매출비중</th><th>GP(억)</th><th>GP비중</th><th>GPM</th></tr></thead>
+    <tbody>
+      <tr><th>CHEXCAR 상품화<small>저매출·고마진</small></th><td class="c">80.8</td><td class="c">23.2%</td><td class="c">21.4</td><td class="c" style="color:var(--focal);font-weight:700">54.0%</td><td class="c">26.5%</td></tr>
+      <tr><th>LEMON 공매·자판기<small>고매출·저마진(pass-through)</small></th><td class="c">252.6</td><td class="c" style="font-weight:700">72.4%</td><td class="c">3.7</td><td class="c">9.3%</td><td class="c" style="color:var(--warn)">1.5%</td></tr>
+      <tr><th>SaaS·낙찰수수료<small>고마진 반복수익</small></th><td class="c">11.3</td><td class="c">3.2%</td><td class="c">11.3</td><td class="c" style="color:var(--focal);font-weight:700">28.4%</td><td class="c">~100%</td></tr>
+      <tr><th>임대·기타</th><td class="c">4.1</td><td class="c">1.2%</td><td class="c">3.3</td><td class="c">8.3%</td><td class="c">—</td></tr>
+      <tr><th style="background:var(--surface-2)">합계</th><td class="c" style="background:var(--surface-2);font-weight:700">348.8</td><td class="c" style="background:var(--surface-2)">100%</td><td class="c" style="background:var(--surface-2);font-weight:700">39.7</td><td class="c" style="background:var(--surface-2)">100%</td><td class="c" style="background:var(--surface-2)">11.4%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sec-sub" style="font-size:12px;margin:8px 0 0">단위 이코노믹스(2025): 상품화 14,400대 · 대당 GP 약 15만원 &nbsp;|&nbsp; LEMON 2,163거래 · 대당 GP 약 17만원(대당 매출 ~1,170만원). 절대 GP는 대당 유사하나, LEMON은 매출만 크게 부풀린다.</p>
+  <div class="callout" style="margin-top:14px;background:var(--focal-soft);border-color:var(--focal)">
+    <b style="color:var(--focal)">헤드라인 정정.</b> 매출 –12.4%지만 <b>GP는 31.9→39.7억(+24.5%)</b>, GPM 8.0%→11.4%로 개선. 줄어든 건 저마진 LEMON 총액(그마저 GMV는 +19%)이고, 상품화 물량은 +22%(11.8k→14.4k대)·SaaS수수료 +23%. 저마진 pass-through가 빠지고 고마진 상품화·SaaS 비중이 커진 것.
+  </div>
+  <div class="callout" style="margin-top:10px">
+    ⚠︎ <b>원가 인식 주의</b> — 상품화매출원가에 <b>정비 인건비·부품·외주비가 빠져(SG&A로 분류)</b> 상품화 GPM 26.5%는 실제보다 과대. 상품매출원가는 차량 매입액. 그래서 이 GP가 영업이익으로 내려오면 <b>5.2억(OPM 1.5%)</b>로 얇아진다. 상품화 물량 +22%인데 인식매출 –7% → 대당 단가 하락(믹스/일부 SaaS 전환)도 관찰 포인트.
+  </div>
+</section>
+
+<!-- VALUATION -->
+<section id="val">
+  <div class="sec-head"><span class="n">05</span><h2>밸류에이션 프레이밍 — "한국의 Carvana"?</h2></div>
+  <p class="sec-sub">체카는 스스로를 "한국의 Carvana"로 규정하며 Carvana형 고배수를 차용하려 한다. 아래는 상장 비교사의 현재 EV/Sales(2026.08 기준) — <b>어느 앵커를 적용하느냐가 곧 밸류에이션 논쟁의 핵심</b>이다.</p>
+  <div class="panel">
+    <h3>EV / Sales 비교 (상장 비교사)</h3>
+    <div class="ph">배수 · 2026.08 기준 · 회색은 참고</div>
+    <div id="chart-val"></div>
+    <div class="flag-note">⚠︎ Carvana는 B2C 브랜드의 수직통합(3.2x), CarMax·K카는 성숙 오프라인(0.3–1.0x). 체카는 B2B 인프라 — Carvana 배수를 그대로 차용할 근거는 약하다. 감사 순매출 349억(2025)에 비교사 배수 3x를 적용하면 ~1,000억 수준.</div>
+  </div>
+</section>
+
+<!-- RED FLAGS -->
+<section id="flags">
+  <div class="sec-head"><span class="n">06</span><h2>실사 관점 — 레드플래그 & 오픈 퀘스천</h2></div>
+  <p class="sec-sub">진실을 승인보다 우선. 강점과 리스크를 동일한 무게로. 각 항목은 감사보고서·재무·리서치로 근거를 표기했다.</p>
+  <div class="flags" id="flags-grid"></div>
+</section>
+
+</main>
+
+<!-- DRAWER -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dhead">
+    <div>
+      <div class="tag" id="d-tag"></div>
+      <h2 id="d-title"></h2>
+      <div class="sub" id="d-sub"></div>
+    </div>
+    <button class="close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="dbody" id="d-body"></div>
+</aside>
+
+<footer class="wrap">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div>
+      <h4>1차 자료 (폴더)</h4>
+      <div>체카 IR 덱(2026.07.29) · [체카]감사보고서(2026.04.01, 다산회계법인) · FS_체카.xlsx · NICE BizLINE 재무제표 · Carro IM(신한GIB) · Carvana FY24/25 · CarMax FY25 Annual Report</div>
+    </div>
+    <div>
+      <h4>주요 외부 출처</h4>
+      <div>
+        <a href="https://www.autodaily.co.kr/news/articleView.html?idxno=510996" target="_blank">기아 중고차 상품화 위탁(체카) — 오토데일리</a> ·
+        <a href="https://www.ebn.co.kr/news/articleView.html?idxno=1650816" target="_blank">K카 '24 매출 2.3조 — EBN</a> ·
+        <a href="https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=86&bcIdx=1032516" target="_blank">중고차 생계형적합업종 미지정 — 중기부</a> ·
+        <a href="https://www.businesswire.com/news/home/20260218365089/en/" target="_blank">Carvana FY2025 실적 — BusinessWire</a> ·
+        <a href="https://www.businesswire.com/news/home/20260414372210/en/" target="_blank">CarMax FY2026 — BusinessWire</a> ·
+        <a href="https://carro.co/sg/blog/carro-posts-record-revenues-gross-profit-fy2025" target="_blank">Carro FY2025 — Carro</a>
+      </div>
+    </div>
+  </div>
+  <div class="disc">
+    <b>면책 및 유의.</b> 본 자료는 Reverent Partners 내부 투자검토용 스터디이며, 투자 권유·자문이 아니다.
+    KPI·시장규모·M/S·2025년 이후 전망은 대부분 회사 IR/내부 추정치로 <b>독립 검증되지 않았다</b>. 재무 수치는 (주)체카 개별재무제표(K-IFRS, 감사) 기준이며 IR의 GMV·"K-IFRS 미적용" 추정과 구분해 해석해야 한다.
+    비교사 재무·밸류에이션은 2026.08 기준 공개자료로, 사업모델이 상이해 직접 비교에 한계가 있다. 리서치 과정에서 IR의 일부 표기 오류를 교정함(엔카 소유주=호주 CarSales, K카 최대주주=한앤컴퍼니(PE), Carvana S&P500 편입 효력일=2025.12.22, Carvana GAAP 순이익은 비현금 세금효과 포함).
+  </div>
+  <div style="margin-top:16px">체카 밸류체인 스터디 · 생성 2026.08.07 · 내부 회람용</div>
+</footer>
+
+<script>
+/* ---------- DATA MODEL ---------- */
+const STAGES = [
+  {id:"src", step:"01 · 매입 / 소싱", name:"Sourcing", ko:"매입·소싱",
+   desc:"중고차 물량이 시장에 유입되는 관문. 신차 대리점 트레이드인, 내차팔기 플랫폼(C2B), 리스·렌터카 만기차, 경매장, 개인 직거래.",
+   players:"헤이딜러(내차팔기 1위) · 렌터카(롯데·SK) 만기물량 · OEM 신차고객 트레이드인 · 경매장",
+   chexcar:"체카는 <b>소비자 직접매입 브랜드가 아니다.</b> 물량은 B2B 고객(OEM CPO·렌터카·캐피탈·딜러)의 <b>위탁</b>으로 유입 → 소싱을 '제휴/간접'으로 커버.",
+   cx:"part", cxlabel:"제휴·간접(위탁 유입)",
+   econ:"이 단계 자체는 체카의 직접 수익원이 아니라 상품화 물량의 <b>공급 파이프라인</b>. 고객 다변화가 곧 소싱 안정성.",
+   risk:"소비자 접점(트레이드인·내차팔기)을 직접 소유하지 않아, 물량이 B2B 고객의 의사결정에 종속. 고객이 상품화를 in-house化하면 소싱이 마름."},
+  {id:"rec", step:"02 · 검수 / 상품화", name:"Reconditioning", ko:"검수·상품화(재제조)", core:true,
+   desc:"매입 차량을 진단(PDI)·판금·도장·수리·세차·부품교체·표준화하여 '판매 가능한 상품'으로 만드는 공정. 설비·인력 집약적이고 리테일 원가·품질의 핵심.",
+   players:"현대(자체센터 직영) · 기아(체카 외주) · K카(자체) · 영세 공업사 다수 · <b>표준화된 3자 인프라는 부재</b>",
+   chexcar:"<b>체카의 코어.</b> 직영 스마트팩토리 3개소(수원 통합인증센터·용인 물류·화성 모빌리티허브 연 3만대) + 전국 91개 파트너를 VPF(디지털 트윈) SaaS로 통합. 누적 53,527대·품질 99.95%·리드타임 4.2일.",
+   cx:"own", cxlabel:"직영 + SaaS 플랫폼",
+   econ:"수익 이원화: ①딜러 상품화 직접매출(총액) ②B2B SaaS(Fee per Car + 구독). 화성 허브 가동률이 마진 레버리지의 핵심.",
+   risk:"<b>디스인터미디에이션이 최대 리스크.</b> 현대는 이미 자체 상품화센터 운영, 기아도 수도권 자체센터 구축 계획(2025~). 대형 고객의 in-house 전환 시 코어 매출 훼손. 또한 설비 선투자(380억)로 고정비 레버리지가 양방향."},
+  {id:"whl", step:"03 · 재고 / 공매", name:"Wholesale & Auction", ko:"재고·도매·공매",
+   desc:"상품화된 차량이 딜러·법인 간 도매로 유통되는 단계. 경매/공매, 플로어플랜(재고금융).",
+   players:"기존 오프라인 경매장 · <b>체카 LEMON B2B 온라인 공매</b> · OEM 미판매분 경매 회부",
+   chexcar:"LEMON B2B 공매 직영. AI 추천 입찰가 + 상품화 차량 우선연동 + 99.95% 품질보증으로 분쟁 최소화. 누적 4,448대·805억 GMV(2021–2025).",
+   cx:"own", cxlabel:"직영(LEMON 공매)",
+   econ:"경매 수수료 + 상품화 차량 우선연동으로 2·3단계 시너지. 프라이싱 데이터가 해자.",
+   risk:"거래대수 절대규모가 아직 작고(누적 4,448대), 오프라인 경매장·기존 도매망 대비 유동성(참여 딜러 풀) 확보가 관건."},
+  {id:"ret", step:"04 · 리테일 판매", name:"Retail", ko:"리테일 판매",
+   desc:"최종 소비자에게 판매. 리스팅/광고 플랫폼, 직영 e커머스, OEM 인증중고차 자사몰, 기업형·영세 딜러, 무인 자판기.",
+   players:"엔카(리스팅 1위) · KB차차차 · K카(직영 1위) · OEM CPO 자사몰 · <b>체카 LEMON B2C 자판기</b>",
+   chexcar:"LEMON B2C 자판기(수원·용인)로 부분 참여. 24/7 무인·원클릭 구매. 다만 규모는 초기(누적 판매 소액). 리스팅/광고(엔카 영역)에는 미진입.",
+   cx:"light", cxlabel:"부분·신규(자판기)",
+   econ:"자판기 판매 마진 + 금융·보험 원스톱 연계. D2C 유통비 절감이 논리이나 트래픽·브랜드 인지도가 과제.",
+   risk:"소비자 브랜드·트래픽이 약함. 엔카·K카 대비 리테일 최전선 경쟁력은 아직 입증 전. 신사업 성격."},
+  {id:"anc", step:"05 · 금융 / 부가", name:"Ancillary", ko:"금융·보험·렌트·A/S",
+   desc:"거래에 부수하는 고마진 반복수익 — 할부금융, 보험, 구독/렌트, 연장보증, 배송·A/S. 글로벌 풀스택의 실제 이익원.",
+   players:"KB캐피탈/KB차차차 · 캐피탈사 할부 · 보험사 · 렌터카(롯데·SK) · <b>체카 NEXTGEAR(금융)·MOVESHARE(렌트)</b>",
+   chexcar:"NEXTGEAR(자동차 금융·보험 연계)와 MOVESHARE(면허취득자 타깃 구독형 렌트)로 확장 중. 상품화 차량을 플릿으로 전환해 렌트료+매각익 이중수익 설계. 현재 파일럿 단계(300대).",
+   cx:"light", cxlabel:"신규·파일럿",
+   econ:"Carro의 교훈: 풀스택의 이익 70%가 핀테크에서 나온다. 체카도 금융·구독으로 마진 다각화를 노림.",
+   risk:"전부 초기·미검증. CAPEX 선투자·전환율·손해율 리스크. 렌터카(롯데·SK)·쏘카·캐피탈 등 자본력 있는 기존 강자와 경쟁."}
+];
+
+const STATE = {own:{cls:"s-own",label:"직영·소유"}, part:{cls:"s-part",label:"제휴·부분"}, light:{cls:"s-light",label:"경량·신규"}, absent:{cls:"s-absent",label:"미참여"}};
+
+const COMPANIES = [
+  {id:"chexcar", grp:"KR·focal", focal:true, name:"체카 CHEXCAR", sub:"인증중고차 Fulfillment OS (비상장)",
+   one:"상품화·공매 '중간'을 인프라로 소유하고 서비스로 판매하는 B2B 플레이. 남들이 내부화한 레이어가 곧 체카의 제품.",
+   cov:{src:"part",rec:"own",whl:"own",ret:"light",anc:"light"},
+   model:["코어: 검수·상품화(재제조) 직영 스마트팩토리 3개소 + 91 파트너 VPF SaaS","LEMON: B2B 공매 + B2C 자판기","MOVESHARE(구독 렌트)·NEXTGEAR(금융) 신사업","기아 인증중고차 단독 운영사, 다수 수입 브랜드 CPO 레퍼런스"],
+   fin:[["2025 매출(감사)","348.8억 (YoY –12.4%)"],["2025 EBITDA","11.2억 (마진 3.2%)"],["2025 당기순이익","2.4억"],["부채비율/순차입","547% / 388억"],["기말 현금","2.4억"]],
+   val:"비상장. 2028 코스닥 IPO 목표, SOTP Base 7,000억–1조(IR, 2028E 기준).",
+   dd:["<b>계속기업 불확실성</b>(감사 주석20): 유동부채 354억 » 유동자산 71억, 단기차입 324억, 현금 2.4억","고객 in-house化(현대 자체·기아 자체센터 계획) 디스인터미디에이션 리스크","GMV vs 순매출 혼용, 마진 스텝업 가정 공격적","강점: 캡 해제(2025.5) 후 상품화 수요 구조적 증가의 '곡괭이' 포지션, VPF·데이터 해자"]},
+
+  {id:"encar", grp:"KR", name:"엔카 Encar", sub:"리스팅·광고 플랫폼 1위 (CarSales 100% 자회사)",
+   one:"딜러–구매자 중개 광고 플랫폼. 재고를 보유하지 않는 자산경량 마켓플레이스. 체카와 밸류체인이 거의 겹치지 않음(보완재).",
+   cov:{src:"absent",rec:"absent",whl:"absent",ret:"own",anc:"part"},
+   model:["구매 플랫폼 점유율 ~53% 1위","엔카진단(진단료 부가수익) — 검수 '광고'이지 상품화 아님","금융·보험 중개 광고"],
+   fin:[["소유주","호주 CarSales (100%)"],["포지션","리스팅/광고, 재고 미보유"]],
+   val:"CarSales 연결. 별도 상장 아님.",
+   dd:["체카의 경쟁자가 아니라 잠재 유통 채널(보완재)","IR의 '엔카=SK/헤이딜러' 표기는 오류 → 실제 CarSales 소유"]},
+
+  {id:"kcar", grp:"KR", name:"K카 (케이카)", sub:"직영 리테일 1위 · KOSPI 상장 (최대주주 한앤컴퍼니)",
+   one:"한국판 CarMax. 직매입–자체 상품화–직영/온라인 판매를 수직통합한 성숙 리테일러. 저성장·저멀티플.",
+   cov:{src:"own",rec:"own",whl:"part",ret:"own",anc:"part"},
+   model:["직영 매입·판매 + 온라인 e커머스(내차사기/팔기, 홈서비스)","자체 상품화(체카에 외주하지 않음)","제휴 금융"],
+   fin:[["2024 매출","2조 3,015억 (+12.4%)"],["2024 영업이익","681억 (+15.4%)"],["EV/Sales","~0.3–0.5x"]],
+   val:"KOSPI 상장(2021), 한앤컴퍼니 최대주주, 매각 재추진. 성숙 리테일 저멀티플.",
+   dd:["체카의 상품화 잠재 고객이자 리테일 경쟁 참조점","IR의 '최대주주 KG모빌리티' 표기는 오류 → 한앤컴퍼니(PE)"]},
+
+  {id:"cpo", grp:"KR", name:"현대·기아 CPO", sub:"OEM 인증중고차 (2023.5~, 점유율 캡 2025.5 해제)",
+   one:"완성차 직접 진입. 신차고객 트레이드인을 인증중고차로 판매. 캡 해제로 물량 급증 → 상품화 수요의 최대 진원지이자 체카 최대 고객 & 최대 위협.",
+   cov:{src:"own",rec:"part",whl:"part",ret:"own",anc:"own"},
+   model:["현대: 자체 상품화센터 직영(양산·용인)","기아: 상품화 체카에 외주(→ 자체센터 계획)","미판매분 경매 회부","캐피탈 계열 금융"],
+   fin:[["진입","2023.5 판매 개시"],["점유율 캡","2025.5 완전 해제"]],
+   val:"OEM 사업부. 별도 밸류 없음.",
+   dd:["<b>양날의 검</b>: 기아 위탁은 체카 코어 매출, 그러나 현대는 자체·기아도 자체센터 추진 → in-house化 리스크","캡 해제는 시장 전체 상품화 수요를 구조적으로 키움(체카 순풍)"]},
+
+  {id:"carvana", grp:"Global", name:"Carvana", sub:"미국 온라인 리테일러 (NYSE:CVNA, S&P500)",
+   one:"디지털 네이티브 B2C가 ADESA 인수로 상품화·경매·물류를 사들여 '수직통합'을 완성. 체카가 서비스로 파는 레이어를 Carvana는 내부에 지었다.",
+   cov:{src:"own",rec:"own",whl:"own",ret:"own",anc:"own"},
+   model:["ADESA 경매 56개소(22년 $2.2B 인수) 소싱","IRC 검수·상품화 수직통합","100% 온라인 + 자판기 ~40개","자체 물류 + Carvana financing(DriveTime)"],
+   fin:[["FY2025 매출","$20.3B (+49%)"],["FY2025 대수","596,641 (+43%)"],["Adj. EBITDA","11.0% (사상최고)"],["Q2 FY2026","매출 $7.4B(+52%)"]],
+   val:"시총 ~$77B · EV/Sales ~3.2x · P/E ~38x (2026.08).",
+   dd:["체카 IR의 '한국형 Carvana' 벤치마크","단, Carvana=B2C 브랜드 수직통합 / 체카=B2B 인프라 → 배수 차용 근거 상이","GAAP 순이익($1.9B)은 비현금 세금효과 포함(과대), Adj.EBITDA로 비교 권장","2022 파산위기→2023 채무재조정 후 턴어라운드(레버리지 교훈)"]},
+
+  {id:"carmax", grp:"Global", name:"CarMax", sub:"미국 옴니채널 리테일러 (NYSE:KMX)",
+   one:"성숙 인큐번트. 255개 대형 슈퍼스토어 + 옴니채널 + 자체 상품화 + 캡티브 금융(CAF). 저성장·마진 압박, 저멀티플.",
+   cov:{src:"own",rec:"own",whl:"own",ret:"own",anc:"own"},
+   model:["감정레인 자체조달(self-sufficiency)","자체 상품화","자체 도매경매","CarMax Auto Finance(캡티브, 대출 온-BS)"],
+   fin:[["FY2026 매출","$25.9B"],["FY2026 리테일","780,684대"],["FY2026 순이익","$247M(감액포함)"],["EV/Sales","~0.95x"]],
+   val:"시총 ~$8B · EV/Sales ~0.95x(CAF 부채로 왜곡) · 저성장.",
+   dd:["Carvana의 저성장 반대극 — 밸류에이션 스펙트럼의 하단 앵커","상품화는 전부 in-house → 체카형 3자 서비스의 잠재고객이 아니라 자체수행 모델"]},
+
+  {id:"carro", grp:"Global", name:"Carro", sub:"동남아 풀스택 플랫폼 (싱가포르, IPO 추진)",
+   one:"AI 검수–상품화–리테일 풀스택 위에 금융·보험·구독을 얹어 이익의 70%+를 핀테크에서 창출. '리테일 깔때기를 가진 대출기관'.",
+   cov:{src:"own",rec:"own",whl:"part",ret:"own",anc:"own"},
+   model:["AI 프라이싱/컴퓨터비전 검수","자체 상품화·리테일(8개 APAC 시장)","Genie 금융(대출잔액 ~US$500M)·보험·구독","이익 믹스: 금융 32%·보증/구독 22%·보험 18%"],
+   fin:[["FY2025 매출","S$1.2B(US$898M,+15%)"],["Gross profit","S$149M(마진 12.4%)"],["EBITDA","S$43M(흑자)"]],
+   val:"나스닥 IPO 추진(목표 >US$3B, 보도 기준·미확정).",
+   dd:["체카 NEXTGEAR·MOVESHARE(금융·구독)의 롤모델 — '핀테크로 마진 다각화'","단 Carro는 B2C 풀스택, 체카는 B2B 인프라 — 이익 구조 상이","Kavak(멕시코) 밸류 $8.7B→$2.2B 폭락은 풀스택 자본집약의 경고"]}
+];
+
+const FLAGS = [
+  {sev:"crit", t:"계속기업(Going Concern) 중요한 불확실성",
+   d:"감사의견은 '적정'이나 <b>강조사항으로 계속기업 존속능력에 대한 중요한 불확실성</b>을 명시(주석20). 유동부채 353.9억이 유동자산 70.5억을 크게 초과(유동비율 20%), 단기차입 324.2억, 기말 현금 2.4억. 존속이 차입약정 연장·유상증자(시리즈C)·매출확대에 의존.",
+   e:"출처: [체카]감사보고서(2026.04.01, 다산회계법인) 감사의견·주석20"},
+  {sev:"crit", t:"극단적 레버리지 · capex 선투자",
+   d:"부채비율 547%, 순차입 388억, <b>순차입/EBITDA 34.6x</b>. 화성 모빌리티허브 380억을 단기차입으로 조달(건설중자산 209억·토지 189억). 가동률·수요가 계획 미달 시 고정비 레버리지가 역회전.",
+   e:"출처: FS_체카.xlsx 재무상태표·현금흐름표(감사)"},
+  {sev:"pos", t:"‘매출 –12%’는 오독 — 실제 GP는 +24.5%",
+   d:"감사 순매출은 2024 398→2025 349억(–12.4%)이나, 줄어든 건 <b>마진 1.5%짜리 LEMON 총액매출</b>(공매 차량 되팔기)이고 그마저 GMV는 +19%(총액→순액 인식 전환). 반면 <b>매출총이익 31.9→39.7억(+24.5%)</b>·GPM 8.0→11.4%로 개선, 상품화 물량 +22%·SaaS수수료 +23%. 저마진 pass-through가 빠지고 고마진 상품화·SaaS 비중이 커진 것 — 사업부 이코노믹스 섹션 참조.",
+   e:"출처: FS_체카.xlsx 손익계산서 사업부 분해(감사)"},
+  {sev:"warn", t:"단, 절대 수익성은 여전히 얇고 원가인식 주의",
+   d:"GP 믹스는 개선됐으나 <b>영업이익은 5.2억(OPM 1.5%)</b>에 불과. 상품화매출원가에 정비 인건비·부품·외주비가 빠져(SG&A 분류) <b>상품화 GPM 26.5%는 과대</b>이며, 상품화 물량 +22%인데 인식매출 –7%(대당 단가 하락)도 관찰 포인트. LEMON 매출 72%는 경제적 실질을 과대표시.",
+   e:"출처: FS_체카.xlsx IS 주석17·사업부 분해 · 사용자 확인"},
+  {sev:"warn", t:"GMV(총액) vs 순매출(K-IFRS) 혼용",
+   d:"IR의 '2026E 608억 → 2030E 6,000억'은 <b>거래총액(GMV)·'K-IFRS 미적용' 추정</b>. 감사 순매출과 배수가 크게 달라 성장률·밸류에이션 계산을 왜곡. 상품화=총액, LEMON 상당분=순액 인식 혼합.",
+   e:"출처: IR 재무전망(‘K-IFRS 미적용’ 명기) vs 감사 손익계산서"},
+  {sev:"warn", t:"디스인터미디에이션 — 고객 in-house化 리스크",
+   d:"3자 상품화 모델의 구조적 취약점. <b>현대는 이미 자체 상품화센터, 기아도 수도권 자체센터 구축 계획(2025~)</b>. 최대 고객(기아 CPO 단독운영)이 내재화하면 코어 매출 훼손. 고객 집중도도 리스크.",
+   e:"출처: 오토데일리(현대 직접/기아 위탁) · 리서치 브리프"},
+  {sev:"warn", t:"마진 스텝업 · 밸류에이션 가정 공격적",
+   d:"감사 EBITDA 마진 ~3.2%(2025)에서 IR 2028E ~16%(EBITDA 241억)로의 스텝업, 그리고 Carvana형 3.2x 배수 차용이 SOTP Base 7,000억–1조를 지탱. 순매출 349억×3x≈1,000억과의 격차는 전적으로 미래 추정 실현에 의존.",
+   e:"출처: IR SOTP/재무전망 · Carvana/CarMax/K카 EV/Sales(2026.08)"},
+  {sev:"warn", t:"신사업 트랙션 초기 · 미검증",
+   d:"LEMON B2C 자판기(누적 4,448대는 B2B 공매 합산)·MOVESHARE(파일럿 300대)·NEXTGEAR(금융)은 모두 초기. GMV 기여의 대부분은 상품화이며 신사업은 아직 실증 전. 렌트는 롯데·SK·쏘카 등 자본 강자와 경쟁.",
+   e:"출처: IR LEMON/MOVESHARE 슬라이드"},
+  {sev:"pos", t:"강점 — 구조적 화이트스페이스의 '곡괭이'",
+   d:"점유율 캡 해제(2025.5) 후 OEM·렌터카·PE의 리테일 확장이 <b>표준화된 상품화 수요를 구조적으로 확대</b>. 설비·숙련인력 진입장벽으로 3자 표준 인프라(VPF 디지털트윈·91 파트너·53,527대 데이터셋)는 단기 복제난이도가 높음. 2024~ EBITDA·2025 순이익 흑자전환.",
+   e:"출처: 중기부 생계형적합업종 미지정 · IR 기술/트랙션 · 감사 손익"}
+];
+
+/* ---------- RENDER ---------- */
+const $=s=>document.querySelector(s), el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+
+// Value-chain flow
+const flow=$("#flow");
+STAGES.forEach((s,i)=>{
+  const cxcls=s.cx==="own"?"cx-own":(s.cx==="absent"?"cx-none":"cx-part");
+  const n=el("div","node"+(s.core?" core":""));
+  n.innerHTML=`<div class="step">${s.step}</div><h3>${s.ko}</h3><p>${s.desc.slice(0,70)}…</p>
+    <div class="cx ${cxcls}">체카 · ${s.cxlabel}</div>`;
+  n.onclick=()=>openStage(s.id);
+  flow.appendChild(n);
+});
+
+// Matrix
+const mx=$("#mx");
+const colGroups=[{k:"KR",label:"한국"},{k:"KR·focal",label:""},{k:"Global",label:"글로벌 벤치마크"}];
+const orderedCols=[COMPANIES[0],...COMPANIES.filter(c=>c.grp==="KR"),...COMPANIES.filter(c=>c.grp==="Global")];
+let thead="<thead><tr><th class='grp' style='text-align:left'>단계 ＼ 기업</th>";
+orderedCols.forEach(c=>{thead+=`<th class="${c.focal?'focalcol':''}" onclick="openCompany('${c.id}')">${c.name.split(' ')[0]}</th>`;});
+thead+="</tr></thead>";
+let tbody="<tbody>";
+STAGES.forEach(s=>{
+  tbody+=`<tr><th onclick="openStage('${s.id}')">${s.ko}<small>${s.name}</small></th>`;
+  orderedCols.forEach(c=>{
+    const st=c.cov[s.id]||"absent", info=STATE[st];
+    const label=st==="absent"?"—":(st==="own"?"직영":(st==="part"?"제휴":"경량"));
+    tbody+=`<td class="cell ${info.cls}" onclick="openCell('${s.id}','${c.id}')">
+      <span class="badge">${label}</span></td>`;
+  });
+  tbody+="</tr>";
+});
+tbody+="</tbody>";
+mx.innerHTML=thead+tbody;
+
+// Company cards
+const cards=$("#cards");
+COMPANIES.forEach(c=>{
+  const card=el("div","card"+(c.focal?" focal":""));
+  const covbars=STAGES.map(s=>{const st=c.cov[s.id]||"absent";const m=st==="own"?"own":st==="part"?"part":st==="light"?"light":"";return `<i class="${m}"></i>`;}).join("");
+  card.innerHTML=`<div class="tag">${c.grp.replace('·focal',' · 대상')}</div><h3>${c.name}</h3>
+    <div class="sub">${c.sub}</div><p>${c.one}</p>
+    <div class="minicov">${covbars}</div>
+    <div class="cov-l">밸류체인 커버리지: 매입·상품화·공매·리테일·부가</div>`;
+  card.onclick=()=>openCompany(c.id);
+  cards.appendChild(card);
+});
+
+// Flags
+const fg=$("#flags-grid");
+FLAGS.forEach(f=>{
+  const icon=f.sev==="crit"?"⛔":f.sev==="warn"?"⚠︎":"✓";
+  const sevl=f.sev==="crit"?"Critical":f.sev==="warn"?"Watch":"Strength";
+  const d=el("div","flag "+f.sev);
+  d.innerHTML=`<div class="sev">${icon} ${sevl}</div><h4>${f.t}</h4><p>${f.d}</p><div class="ev">${f.e}</div>`;
+  fg.appendChild(d);
+});
+
+/* ---------- DRAWER ---------- */
+const drawer=$("#drawer"),scrim=$("#scrim");
+function show(tag,title,sub,body){$("#d-tag").textContent=tag;$("#d-title").innerHTML=title;$("#d-sub").innerHTML=sub;
+  $("#d-body").innerHTML=body;drawer.classList.add("on");scrim.classList.add("on");drawer.setAttribute("aria-hidden","false");$("#d-body").scrollTop=0;}
+function closeDrawer(){drawer.classList.remove("on");scrim.classList.remove("on");drawer.setAttribute("aria-hidden","true");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+
+const stageName={src:"매입·소싱",rec:"검수·상품화",whl:"재고·공매",ret:"리테일",anc:"금융·부가"};
+function covRows(c){return STAGES.map(s=>{
+  const st=c.cov[s.id]||"absent";const cls={own:"cb-own",part:"cb-part",light:"cb-light",absent:"cb-absent"}[st];
+  const w={own:100,part:66,light:40,absent:18}[st];const lab={own:"직영·소유",part:"제휴·부분",light:"경량·신규",absent:"미참여"}[st];
+  return `<div class="covrow"><span>${s.ko}</span><div class="covbar ${cls}" style="width:${w}%">${lab}</div></div>`;}).join("");}
+
+function openStage(id){
+  const s=STAGES.find(x=>x.id===id);
+  const cxpill={own:'<span class="pill own">체카: 직영·소유</span>',part:'<span class="pill part">체카: 제휴·부분</span>',light:'<span class="pill light">체카: 경량·신규</span>',absent:'<span class="pill absent">체카: 미참여</span>'}[s.cx];
+  const players=orderedCols.map(c=>{const st=c.cov[id]||"absent";const lab={own:"직영",part:"제휴/부분",light:"경량",absent:"—"}[st];
+    return `<span class="pill ${st}">${c.name.split(' ')[0]} · ${lab}</span>`;}).join("");
+  const body=`
+    <h4>단계 정의</h4><p>${s.desc}</p>
+    <h4>이 단계의 플레이어</h4><p>${s.players}</p>
+    <h4>기업별 커버리지</h4><div>${players}</div>
+    <h4>체카의 포지션 ${cxpill}</h4><p>${s.chexcar}</p>
+    <h4>이코노믹스</h4><p>${s.econ}</p>
+    <h4>리스크</h4><p>${s.risk}</p>`;
+  show("밸류체인 단계 · "+s.step.split('·')[0].trim(),s.ko,s.name,body);
+}
+function openCompany(id){
+  const c=COMPANIES.find(x=>x.id===id);
+  const fin=c.fin.map(([k,v])=>`<dt>${k}</dt><dd class="mono">${v}</dd>`).join("");
+  const dd=c.dd.map(x=>`<li>${x}</li>`).join("");
+  const model=c.model.map(x=>`<li>${x}</li>`).join("");
+  const body=`
+    <p style="font-size:14.5px;color:var(--ink)">${c.one}</p>
+    <h4>밸류체인 커버리지</h4>${covRows(c)}
+    <h4>사업모델</h4><ul>${model}</ul>
+    <h4>재무 하이라이트</h4><dl class="kv">${fin}</dl>
+    <h4>밸류에이션</h4><p>${c.val}</p>
+    <h4>실사 노트</h4><ul>${dd}</ul>`;
+  show(c.focal?"대상기업":"비교기업 · "+c.grp,c.name,c.sub,body);
+}
+function openCell(sid,cid){
+  const s=STAGES.find(x=>x.id===sid),c=COMPANIES.find(x=>x.id===cid);
+  const st=c.cov[sid]||"absent";const lab={own:"직영·소유",part:"제휴·부분",light:"경량·신규",absent:"미참여"}[st];
+  const body=`
+    <div class="callout" style="background:var(--surface-2);border-color:var(--ring)">
+      <b>${c.name.split(' ')[0]}</b> × <b>${s.ko}</b> 단계 → <span class="pill ${st}">${lab}</span></div>
+    <h4>${c.name.split(' ')[0]}의 이 단계</h4><p>${cellNote(sid,c)}</p>
+    <h4>단계 정의</h4><p>${s.desc}</p>
+    <p style="margin-top:14px"><a href="javascript:openCompany('${cid}')">→ ${c.name.split(' ')[0]} 전체 보기</a> &nbsp;·&nbsp;
+    <a href="javascript:openStage('${sid}')">→ ${s.ko} 단계 전체 보기</a></p>`;
+  show("셀 상세",c.name.split(' ')[0]+" · "+s.ko,s.name+" stage",body);
+}
+function cellNote(sid,c){
+  if(c.id==="chexcar")return STAGES.find(x=>x.id===sid).chexcar;
+  const notes={
+    encar:{src:"미참여(중개만).",rec:"미참여 — 엔카진단은 검수 '광고'이지 상품화 공정이 아님.",whl:"미참여.",ret:"<b>리스팅/광고 1위(~53%)</b> — 재고 미보유 마켓플레이스.",anc:"금융·보험 중개 광고."},
+    kcar:{src:"직매입으로 직접 소싱.",rec:"<b>자체 상품화</b>(체카에 외주하지 않음).",whl:"미판매분 도매 처분.",ret:"<b>직영+온라인 리테일 1위</b>.",anc:"제휴 금융."},
+    cpo:{src:"신차고객 트레이드인으로 소싱.",rec:"<b>현대 자체센터 직영 / 기아 체카 외주</b> — 혼재.",whl:"인증 미판매분 경매 회부.",ret:"인증중고차 자사몰 직판.",anc:"캐피탈 계열 금융."},
+    carvana:{src:"<b>ADESA 경매 56개소 + 소비자 매입</b> 자체조달.",rec:"<b>IRC 검수·상품화 수직통합</b>.",whl:"<b>ADESA 도매경매 소유</b>.",ret:"<b>100% 온라인 + 자판기</b>.",anc:"<b>Carvana financing</b>(DriveTime)."},
+    carmax:{src:"<b>감정레인 self-sufficiency</b> 자체조달.",rec:"<b>자체 상품화</b>(in-house).",whl:"<b>자체 도매경매</b> 운영.",ret:"<b>255개 슈퍼스토어 + 옴니채널</b>.",anc:"<b>CAF 캡티브 금융</b>(온-BS)."},
+    carro:{src:"C2B/B2C 자체 소싱.",rec:"<b>AI 검수 + 자체 리퍼비시</b>.",whl:"일부 옥션.",ret:"<b>풀스택 B2C</b>(8개 APAC 시장).",anc:"<b>Genie 금융·보험·구독</b> — 이익의 70%+."}
+  };
+  return (notes[c.id]&&notes[c.id][sid])||"—";
+}
+
+/* ---------- CHARTS (inline SVG) ---------- */
+function barChart(sel,data,{neg=false,unit="억원",fmt=v=>v}={}){
+  const W=440,H=210,pl=34,pr=10,pt=14,pb=26,cw=W-pl-pr,ch=H-pt-pb;
+  const vals=data.map(d=>d.v);const max=Math.max(...vals,0),min=Math.min(...vals,0);
+  const span=(max-min)||1;const y=v=>pt+ch-((v-min)/span)*ch;const zero=y(0);
+  const bw=cw/data.length*0.56;
+  let g="";
+  [max,(max+min)/2,min].forEach(t=>{const yy=y(t);g+=`<line class="grid" x1="${pl}" y1="${yy.toFixed(1)}" x2="${W-pr}" y2="${yy.toFixed(1)}"/><text class="axis" x="${pl-5}" y="${(yy+3).toFixed(1)}" text-anchor="end">${Math.round(t)}</text>`;});
+  data.forEach((d,i)=>{const cx=pl+cw*(i+0.5)/data.length;const yy=y(d.v);const h=Math.abs(yy-zero);
+    const top=d.v>=0?yy:zero;const cls=d.v>=0?"bar":"bar-neg";
+    g+=`<rect class="${cls}" x="${(cx-bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h,1).toFixed(1)}" rx="3"><title>${d.k}: ${fmt(d.v)}${unit}</title></rect>`;
+    g+=`<text class="lbl" x="${cx.toFixed(1)}" y="${(d.v>=0?top-4:top+h+11).toFixed(1)}" text-anchor="middle">${fmt(d.v)}</text>`;
+    g+=`<text class="axis" x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${d.k}</text>`;});
+  document.querySelector(sel).innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`;
+}
+function groupChart(sel,data){ // two series: EBITDA & 순이익
+  const W=440,H=210,pl=34,pr=10,pt=14,pb=26,cw=W-pl-pr,ch=H-pt-pb;
+  const all=data.flatMap(d=>[d.a,d.b]);const max=Math.max(...all,0),min=Math.min(...all,0);const span=(max-min)||1;
+  const y=v=>pt+ch-((v-min)/span)*ch;const zero=y(0);const bw=cw/data.length*0.24;
+  let g="";[max,(max+min)/2,min].forEach(t=>{const yy=y(t);g+=`<line class="grid" x1="${pl}" y1="${yy.toFixed(1)}" x2="${W-pr}" y2="${yy.toFixed(1)}"/><text class="axis" x="${pl-5}" y="${(yy+3).toFixed(1)}" text-anchor="end">${Math.round(t)}</text>`;});
+  data.forEach((d,i)=>{const cx=pl+cw*(i+0.5)/data.length;
+    [[d.a,-1,"var(--accent)","EBITDA"],[d.b,1,"var(--focal)","순이익"]].forEach(([v,off,col,nm])=>{
+      const yy=y(v);const h=Math.abs(yy-zero);const top=v>=0?yy:zero;const x=cx+off*bw*0.55-bw/2;
+      g+=`<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h,1).toFixed(1)}" rx="2.5" fill="${col}"><title>${d.k} ${nm}: ${v}억</title></rect>`;});
+    g+=`<text class="axis" x="${cx.toFixed(1)}" y="${H-8}" text-anchor="middle">${d.k}</text>`;});
+  document.querySelector(sel).innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>
+    <div style="display:flex;gap:16px;font-size:11.5px;color:var(--ink-2);margin-top:6px">
+    <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:2px"></span> EBITDA</span>
+    <span><span style="display:inline-block;width:10px;height:10px;background:var(--focal);border-radius:2px"></span> 당기순이익</span></div>`;
+}
+function hbarChart(sel,data){
+  const W=440,rowH=34,pt=6,pl=96,pr=40;const H=pt*2+data.length*rowH;
+  const max=Math.max(...data.map(d=>d.v));let g="";
+  data.forEach((d,i)=>{const yy=pt+i*rowH+6;const bw=(W-pl-pr)*(d.v/max);
+    g+=`<text class="axis" x="${pl-8}" y="${yy+15}" text-anchor="end" style="font-size:11px;fill:var(--ink-2)">${d.k}</text>`;
+    g+=`<rect x="${pl}" y="${yy}" width="${Math.max(bw,2).toFixed(1)}" height="20" rx="3" fill="${d.c||'var(--accent)'}"><title>${d.k}: ${d.v}x</title></rect>`;
+    g+=`<text class="lbl" x="${(pl+bw+6).toFixed(1)}" y="${yy+15}" style="font-size:11px">${d.v}x</text>`;});
+  document.querySelector(sel).innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`;
+}
+
+function stackCompare(sel,bars,legend){
+  const W=560,rowH=34,pt=4,pl=82,pr=8;const H=pt*2+bars.length*rowH;const bw=W-pl-pr;
+  let g="";
+  bars.forEach((bar,bi)=>{const y=pt+bi*rowH+6;let x=pl;
+    g+=`<text x="6" y="${y+15}" style="font-size:10.5px;font-weight:700;fill:var(--ink)">${bar.label}</text>`;
+    bar.segments.forEach(s=>{const w=bw*s.pct/100;
+      g+=`<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(w-2,1).toFixed(1)}" height="21" rx="2.5" fill="${s.color}"><title>${bar.label} · ${s.name}: ${s.pct}%</title></rect>`;
+      if(w>30)g+=`<text x="${(x+(w-2)/2).toFixed(1)}" y="${y+14.5}" text-anchor="middle" style="font-size:10px;font-weight:700;fill:#fff">${s.pct}%</text>`;
+      x+=w;});});
+  document.querySelector(sel).innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`+legend;
+}
+const MIXBARS=[
+ {label:"매출",segments:[{name:"상품화",pct:23.2,color:"var(--own)"},{name:"LEMON",pct:72.4,color:"var(--partner)"},{name:"SaaS·수수료",pct:3.2,color:"var(--light)"},{name:"임대·기타",pct:1.2,color:"var(--absent)"}]},
+ {label:"매출총이익",segments:[{name:"상품화",pct:54.0,color:"var(--own)"},{name:"LEMON",pct:9.3,color:"var(--partner)"},{name:"SaaS·수수료",pct:28.4,color:"var(--light)"},{name:"임대·기타",pct:8.3,color:"var(--absent)"}]}
+];
+const MIXLEGEND='<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--ink-2);margin-top:8px">'+
+ '<span><span style="display:inline-block;width:10px;height:10px;background:var(--own);border-radius:2px"></span> 상품화(CHEXCAR)</span>'+
+ '<span><span style="display:inline-block;width:10px;height:10px;background:var(--partner);border-radius:2px"></span> LEMON 공매·자판기</span>'+
+ '<span><span style="display:inline-block;width:10px;height:10px;background:var(--light);border-radius:2px"></span> SaaS·낙찰수수료</span>'+
+ '<span><span style="display:inline-block;width:10px;height:10px;background:var(--absent);border-radius:2px"></span> 임대·기타</span></div>';
+function renderMix(){stackCompare("#chart-mix",MIXBARS,MIXLEGEND);}
+
+barChart("#chart-rev",[{k:"'21",v:58},{k:"'22",v:83},{k:"'23",v:201},{k:"'24",v:398},{k:"'25",v:349}]);
+groupChart("#chart-eb",[{k:"'21",a:0,b:0},{k:"'22",a:-2,b:-12},{k:"'23",a:-16,b:-24},{k:"'24",a:9,b:-6},{k:"'25",a:11,b:2}]);
+hbarChart("#chart-val",[
+  {k:"Carvana",v:3.2,c:"var(--accent)"},
+  {k:"Carro(추정)",v:3.5,c:"var(--absent)"},
+  {k:"CarMax",v:0.95,c:"var(--focal)"},
+  {k:"K카",v:0.4,c:"var(--focal)"}
+]);
+renderMix();
+
+/* theme toggle */
+$("#theme").onclick=()=>{const r=document.documentElement;r.setAttribute("data-theme",r.getAttribute("data-theme")==="dark"?"light":"dark");
+  // re-render charts for color vars
+  barChart("#chart-rev",[{k:"'21",v:58},{k:"'22",v:83},{k:"'23",v:201},{k:"'24",v:398},{k:"'25",v:349}]);
+  groupChart("#chart-eb",[{k:"'21",a:0,b:0},{k:"'22",a:-2,b:-12},{k:"'23",a:-16,b:-24},{k:"'24",a:9,b:-6},{k:"'25",a:11,b:2}]);
+  hbarChart("#chart-val",[{k:"Carvana",v:3.2,c:"var(--accent)"},{k:"Carro(추정)",v:3.5,c:"var(--absent)"},{k:"CarMax",v:0.95,c:"var(--focal)"},{k:"K카",v:0.4,c:"var(--focal)"}]);
+  renderMix();
+};
+</script>
+</body>
+</html>
